@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
+    
+    
+<mapper namespace="com.xc.mapper.StudentsMapper">  
+
+	<resultMap type="Students" id="getMap">
+		<id 	property="id" 		         column="id" />
+		<result property="userId"         column="userId" />
+		<result property="username"           column="username" />
+		<result property="password"              column="password" />
+		<result property="phone"              column="phone" />
+		<result property="mail"         column="mail" />
+		<result property="gender"         column="gender" />
+		<result property="birth"         column="birth" />
+		<result property="time"         column="time" />
+		<result property="state"         column="state" />
+		<result property="level"         column="level" />
+		<result property="salary"         column="salary" />
+		<result property="parentId"         column="parentId" />
+		<!-- 一对一 
+		Company  -->
+		<association property="company" column="companyId" javaType="Company">
+			<id property="companyId" column="companyId"/>
+			<result property="companyName" column="companyName" />
+		</association>
+		
+		<!-- 一对一 
+		Department  -->
+		<association property="department" column="departId" javaType="Department">
+			<id property="departId" column="departId"/>
+			<result property="departName" column="departName" />
+		</association> 
+		
+		<!-- 一对一 
+		Post  -->
+		<association property="post" column="postId" javaType="Post">
+			<id property="postId" column="postId"/>
+			<result property="postName" column="postName" />
+		</association>
+		
+		<!-- 一对一 
+		Role  -->
+		<association property="role" column="roleId" javaType="Role">
+			<id 	property="id" 		         column="id" />
+			<id property="roleId" column="roleId"/>
+			<result property="roleName" column="roleName" />
+		</association>
+	</resultMap>
+	
+	<!-- 根据用户名查询 -->
+	<select id="queryByUsername" parameterType="Students" resultType="Students">
+		select * from students where username=#{username}
+	</select>
+	
+	<!-- 根据用户Id查询 -->
+	<select id="queryById" parameterType="String" resultMap="getMap">
+		select s.*,d.departName,c.companyName,p.postName,r.roleName from students s
+		left join department d on d.departId=s.departId
+		left join company c on c.companyId=s.companyId
+		left join post p on p.postId=s.postId
+		left join role r on r.roleId=s.roleId
+		where userId=#{userId} 
+	</select> 
+	
+	<!-- 查询总记录数 -->
+	<select id="selCount" parameterType="Students" resultType="Integer">
+		select count(*) from students
+		<where>
+			<if test="username!=null and username!='' ">
+				username like concat('%',#{username},'%')
+			</if>
+			<if test="userId!=null and userId!='' ">
+				and userId like concat('%',#{userId},'%')
+			</if>
+		</where>
+	</select>
+	
+	<!-- 根据用户名或Id模糊查询 -->
+	<select id="queryByName" parameterType="Students" resultMap="getMap">
+		select st.username bossName,s.id,s.userId,s.username,s.phone,s.mail,s.gender,s.birth,s.time,s.state,s.level,s.salary,s.parentId,d.departName,c.companyName,p.postName,r.roleName from students s
+		left join department d on d.departId=s.departId
+		left join company c on c.companyId=s.companyId
+		left join post p on p.postId=s.postId
+		left join role r on r.roleId=s.roleId
+		left join students st on s.parentId=st.userId
+		<where>
+			<if test="username!=null and username!='' ">
+				s.username like concat('%',#{username},'%')
+			</if>
+			<if test="userId!=null and userId!='' ">
+				and s.userId like concat('%',#{userId},'%')
+			</if>
+		</where>
+	</select>
+	
+	<!-- 查询上级 -->
+	<select id="queryBoss" resultMap="getMap">
+		select id,userId,username from students
+ 	</select>
+	
+	<!-- 查询所有 -->
+<!--     <select id="queryAll" resultMap="getMap">
+		select st.username name,s.userId,s.username,s.password,s.phone,s.mail,s.gender,s.birth,s.time,s.state,s.level,s.salary,s.departId,s.postId,s.roleId,s.companyId,s.parentId,d.departName,c.companyName,p.postName,r.roleName from students s
+		left join department d on d.departId=s.departId
+		left join company c on c.companyId=s.companyId
+		left join post p on p.postId=s.postId
+		left join role r on r.roleId=s.roleId
+		left join students st on st.parentId=s.userId
+	</select> -->
+	
+	<!-- 新增插入 -->
+	<insert id="add" parameterType="Students">
+		insert into students (userId,username,phone,mail,gender,birth,time,level,salary,departId,postId,companyId,parentId) values (#{userId},#{username},#{phone},#{mail},#{gender},#{birth},#{time},#{level},#{salary},#{departId},#{postId},#{companyId},#{parentId})
+	</insert>
+	
+	<!-- 根据用户Id删除 -->
+<!-- 	<delete id="delete" parameterType="String">
+		delete from students where userId=#{userId}
+	</delete> -->
+	
+	<!-- 根据用户Id批量删除 -->
+	<delete id="delMore" parameterType="String">
+		delete from students where userId=#{userId}
+	</delete>
+	
+	<!-- 根据用户id更新 -->
+	<update id="update" parameterType="Students">
+		update students set userId=#{userId},username=#{username},phone=#{phone},mail=#{mail},gender=#{gender},birth=#{birth},time=#{time},level=#{level},salary=#{salary},departId=#{departId},postId=#{postId},companyId=#{companyId},parentId=#{parentId}
+		where id=#{id}		
+	</update>
+	
+	<!-- 根据id更新角色 -->
+	<update id="updateRole" parameterType="Students">
+		update students set roleId=#{roleId} where userId=#{userId}
+	</update>
+	
+         	
+</mapper>
